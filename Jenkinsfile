@@ -14,8 +14,8 @@ properties(
     parameters(
       [
         string(
-          defaultValue: 'ppc64le',
-          description: 'Architectures to run the test on.',
+          defaultValue: 'x86_64,ppc64le',
+          description: 'A comma separated list of architectures to run the test on. Valid values include [x86_64, ppc64le, aarch64, s390x].',
           name: 'ARCHES'
         ),
         string(
@@ -136,11 +136,17 @@ ansiColor('xterm') {
             }
           }
 
-          /************************************************************/
-          /* END TEST BODY                                            */
-          /* Do not edit beyond this point                            */
-          /************************************************************/
-        }, true
+          /*****************************************************************/
+          /* END TEST BODY                                                 */
+          /* Do not edit beyond this point                                 */
+          /*****************************************************************/
+        },
+        { exception, arch ->
+          println("Exception ${exception} occured on ${arch}")
+          if (arch.equals("x86_64") || arch.equals("ppc64le")) {
+            currentBuild.result = 'FAILURE'
+          }
+        }
       )
     }
   }

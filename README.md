@@ -1,46 +1,75 @@
 # Multi-Arch CI Test Template
-This project is a template for multi-arch tests for RedHat's downstream CI. You can see our latest release notes [here](https://github.com/RedHat-MultiArch-QE/multiarch-ci-test-template/releases).
+This project serves as a template for multi-arch tests for RedHat's downstream CI. Currently, this template test can be run only on Jenkins enviroments deployed with the tools provided by the [Multi-Arch CI Pipeline](https://github.com/RedHat-MultiArch-QE/multiarch-ci-pipeline). The only known environment that supports this exists internal to RedHat; however, efforts are being made to support further multi-arch testing upstream as part of the great CentOS CI initiative (see [multiarch-openshift-ci](https://github.com/CentOS-PaaS-SIG/multiarch-openshift-ci) for an example of this effort specifically for OpenShift). You can see our latest template release notes [here](https://github.com/RedHat-MultiArch-QE/multiarch-ci-test-template/releases).
 
-## Overview
-Currently, this template is equipped on to run on a maintained installation of the [Multi-Arch CI Pipeline](https://github.com/RedHat-MultiArch-QE/multiarch-ci-pipeline) project. However, since development work on end-to-end installation for that project is currently a work in progress, there exists only one such maintained [instance](https://multiarch-qe-aos-jenkins.rhev-ci-vms.eng.rdu2.redhat.com), which is only accessible from within the RedHat network. It is possible that this project may be generalized for CentOS CI Jenkins environments in the future (see https://github.com/CentOS-PaaS-SIG/multiarch-openshift-ci for an example of this effort specifically for OpenShift), but currently all efforts are focused on setting up this generalized test infrastructure for internal RedHat resources.
+## Table of Contents
+- [Getting Started](#getting-started)
+  - [Forking the Template](#forking-the-template)
+  - [Creating Your Own Jenkins Job](#creating-your-own-jenkins-job)
+  - [Running the Test](#running-the-test)
+- [License](#license)
+- [Authors](#authors)
+- [Further Documentation](#further-documentation)
 
-## Using the Template
-These are all the changes to the template that should be made in order to run the test.
+## Getting Started
+The only current Jenkins [instance](https://multiarch-qe-jenkins.rhev-ci-vms.eng.rdu2.redhat.com) equipped with the tools and configuration capable of running this test template is internal to RedHat. This guide assumes that you have admin access to this enviroment, or have been able to set up an equivalent enviroment using [Multi-Arch CI Pipeline](https://github.com/RedHat-MultiArch-QE/multiarch-ci-pipeline).
 
-### Build Trigger
-This is where you'd set the JMS trigger for the brew event that kicks off your build. In upstream tests, this would be replaced by a Github PR trigger.
-```
-// TODO Fill out pkg-name and relevant-tag
-selector: 'name = \'pkg-name\' AND CI_TYPE = \'brew-tag\' AND tag LIKE \'relevant-tag\''
+### Forking the Template
+1. In the github UI, fork this project.
+![Forking on Github](assets/fork.png)
 
-```
+### Creating Your Own Jenkins Job
+1. Log in to [Multi-Arch QE Jenkins](https://multiarch-qe-aos-jenkins.rhev-ci-vms.eng.rdu2.redhat.com).
+![Logging in to Jenkins](assets/login.png)
 
-### Parameters
-When kicking off the test, there are 3 key parameters.
-- `ARCH` - The build architecture you want provisioned
-- `CONNECT_AS_SLAVE` - If you intend to run your tests on the provisioned node directly, this should be set to `true`.
-- `TARGET_NODE` - this is the node the test runs from by default. If `CONNECT_AS_SLAVE` is set, the body of the test will be performed on the provisioned slave. Otherwise, it will be run on this node (which could be a static slave).
+2. Navigate to your teams directory. You may need a create a directory for your team if one does not already exist.
+![Navigating to Team's Directory](assets/teamdir.png)
 
-### Post Provisioning Configuration
-Should you want to run some configuration after provisioning the machine, you can specific a public repo that contains an [ansible-playbook](http://docs.ansible.com/ansible/latest/playbooks.html) that can be run to perform this configuration. The `CONFIG_FILE` string specifies the file path for the playbook within the `CONFIG_REPO` repository.
-```
-// TODO Add repo and file path for optional post provision configuration
-string(name: 'CONFIG_FILE', value: ''),
-string(name: 'CONFIG_REPO', value: '')
-```
+3. Select `new item`.
+![Creating a New Item](assets/newitem.png)
 
-### Running the Test Body
-As declared above, you have the option to run your test body directly on the provisioned slave. If so, you would fill in your test body here.
-```
-if (params.CONNECT_AS_SLAVE) {
-  node(provisionedNode) {
-    // TODO Insert test code to run directly on provisioned node here
-  }         
-}
-```
-Otherwise, the test will be run from the target node. You can override the body here.
-```
-else {
-  // TODO Insert test code to connect and test the provisioned node from your static slave here
-}
-```
+4. Name your test. I recommend keeping the name lowercase and using dashes as delimiters between words, since the test name will be used as a directory name when it is run, and special characters have been known to cause problems because of this.
+![Naming Your Test](assets/testname.png)
+
+4. For pipeline type, select `Multi-Branch Pipeline`.
+![Multi-Branch Pipeline](assets/multibranchpipeline.png)
+
+5. Select `OK` at the bottom of the page.
+
+6. Under `Branch Sources` select `Add source->Github`.
+![Adding Github Branch Source](assets/branchsource.png)
+
+6. In the new `Branch Sources->Git` section, fill in the `Project Repository` filed with the Github URL of your fork of this project.
+![Jenkinsfile Configuration](assets/jenkinsfileconfig.png)
+
+7. Hit `Save`. This should scan the repo for branches and kickoff builds for each branch. Since you cloned the template, the only branch should be master.
+![Expected Auto-Run Output](assets/expectedoutput.png)
+ 
+8. The test will be run automatically with the default build parameters, so just by waiting for the test to complete you should see the results of the first build just by browsing to the job. The easiest way to visualize the progress of your builds is to select Blue Ocean. From here, you can navigate down to your branches and see the result for each arch. Once completed, you can also retrieve the build artifacts from this view.
+![Visualizing with Blue Ocean](assets/blueocean.png)
+![Blue Ocean Branch View](assets/blueoceanbranch.png)
+![Blue Ocean Build View](assets/blueoceanbuild.png)
+
+### Running the Test
+1. To run a the test manually, start by logging in to [Multi-Arch QE Jenkins](https://multiarch-qe-jenkins.rhev-ci-vms.eng.rdu2.redhat.com).
+![Logging in to Jenkins](assets/login.png)
+2. Navigate to the test you want to run.
+![Navigating to Team's Directory](assets/teamdir.png)
+![Selecting Your Job](assets/job.png)
+![Selecting Your Branch](assets/branch.png)
+3. In the left panel, select `Build with Parameters`.
+![Build With Parameters](assets/params.png)
+4. Specify the `ARCHES` you want to build on. This parameter takes a list of arches delimited by `,`. The supported arches are `x86_64`, `ppc64le`, `aarch64`, and `s390x`.
+5. Specify the node to run the test from. This defaults to `master`, but could be a static slave.
+6. Click `Build`.
+
+## License
+This project is licensed under the Apache 2.0 License - see the LICENSE file for details.
+
+## Authors
+This project would not be possible without the work of following people.
+- [jaypoulz](https://github.com/jaypoulz/) - *Develops and maintains the current template.*
+- [detiber](https://github.com/detiber/) - *Engineered the starting point for this template in [multiarch-openshift-ci](https://github.com/CentOS-PaaS-SIG/multiarch-openshift-ci).*
+- [arilivigni](https://github.com/arilivigni) - *Provided basis of the Jenkinsfile via [ci-pipeline](https://github.com/CentOS-PaaS-SIG/ci-pipeline).*
+
+## Further Documentation
+For directions on how to add your own tests more details on the pipeline, please visit our [wiki](https://github.com/RedHat-MultiArch-QE/multiarch-ci-test-template/wiki).
