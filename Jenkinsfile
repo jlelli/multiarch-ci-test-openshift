@@ -64,8 +64,8 @@ ansiColor('xterm') {
                 sudo rpm --import http://download.eng.bos.redhat.com/composes/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${arch}/os/RPM-GPG-KEY-redhat-release;
                 sudo rpm --import https://getfedora.org/static/352C64E5.txt;
                 sudo yum install -y bc git make golang docker jq bind-utils;
-                sudo echo 'insecure_registries:' >> /etc/containers/registries.conf;
-                sudo echo '  - 172.30.0.0/16' >> /etc/containers/registries.conf;
+                echo 'insecure_registries:' | sudo tee --append /etc/containers/registries.conf > /dev/null;
+                echo '  - 172.30.0.0/16' | sudo tee --append /etc/containers/registries.conf > /dev/null;
                 sudo systemctl enable docker
               """
             }
