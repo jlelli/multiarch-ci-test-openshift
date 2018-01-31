@@ -96,7 +96,7 @@ ansiColor('xterm') {
                 env | sort
               """
               if (env.CI_MESSAGE != '') {
-                getRPMFromCIMessage(env.CI_MESSAGE)
+                getRPMFromCIMessage(env.CI_MESSAGE, arch)
                 try {
                   sh """
                     ls *.rpm
