@@ -14,7 +14,7 @@ properties(
     parameters(
       [
         string(
-          defaultValue: 'x86_64,ppc64le',
+          defaultValue: 'ppc64le',
           description: 'A comma separated list of architectures to run the test on. Valid values include [x86_64, ppc64le, aarch64, s390x].',
           name: 'ARCHES'
         ),
@@ -82,6 +82,11 @@ properties(
           name: 'OS_BUILD_ENV_IMAGE',
           description: 'openshift-release image',
           defaultValue: 'openshiftmultiarch/origin-release:golang-1.8'
+        ),
+        string(
+          defaultValue: '',
+          description: 'Build NVR for which to run the pipeline',
+          name: 'BUILD_NVR'
         )
       ]
     )
@@ -106,84 +111,84 @@ TestUtils.runParallelMultiArchTest(
     /* TEST BODY                                             */
     /* @param host               Provisioned host details.   */
     /*********************************************************/
-    dir('test') {
-      stage ('Download Test Files') {
-        if (params.TEST_REPO) {
-          git url: params.TEST_REPO, branch: params.TEST_REF, changelog: false
+    try {
+      stage ("Install dependencies") {
+        sh """
+          sudo yum install -y yum-utils
+          sudo yum-config-manager --add-repo https://download.fedoraproject.org/pub/epel/7/${arch};
+          sudo yum-config-manager --add-repo http://download.devel.redhat.com/rel-eng/RCMTOOLS/rcm-tools-rhel-7-server.repo;
+          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/composes/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${arch}/os;
+          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/rel-eng/updates/RHEL-7.4/latest-RHEL-7/compose/Server/${arch}/os/;
+          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${arch}/os/;
+          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/rel-eng/updates/RHEL-7.4/latest-RHEL-7/compose/Server-optional/${arch}/os/;
+          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/rcm-guest/puddles/OpenStack/12.0-RHEL-7/latest/RH7-RHOS-12.0/${arch}/os/;
+          sudo rpm --import http://download.eng.bos.redhat.com/composes/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${arch}/os/RPM-GPG-KEY-redhat-beta;
+          sudo rpm --import http://download.eng.bos.redhat.com/composes/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${arch}/os/RPM-GPG-KEY-redhat-release;
+          sudo rpm --import https://getfedora.org/static/352C64E5.txt;
+          sudo yum install -y bc git make golang docker jq bind-utils koji brewkoji openvswitch;
+          echo "[registries.search]" | sudo tee /etc/containers/registries.conf >/dev/null;
+          echo "registries = ['registry.access.redhat.com']" | sudo tee --append /etc/containers/registries.conf >/dev/null;
+          echo "" | sudo tee --append /etc/containers/registries.conf >/dev/null;
+          echo "[registries.insecure]" | sudo tee --append /etc/containers/registries.conf >/dev/null;
+          echo "registries = ['172.30.0.0/16']" | sudo tee --append /etc/containers/registries.conf >/dev/null;
+          echo "" | sudo tee --append /etc/containers/registries.conf >/dev/null;
+          echo "[registries.block]" | sudo tee --append /etc/containers/registries.conf >/dev/null;
+          echo "registries = []" | sudo tee --append /etc/containers/registries.conf >/dev/null;
+          sudo rm -rf /var/lib/docker;
+          echo 'STORAGE_DRIVER=overlay2' | sudo tee /etc/sysconfig/docker-storage-setup > /dev/null;
+          sudo systemctl enable docker;
+          sudo systemctl start docker;
+          sudo docker info
+          env | sort
+        """
+        if (env.CI_MESSAGE != '') {
+          getRPMFromCIMessage(env.CI_MESSAGE, arch)
+          try {
+            sh """
+              ls *.rpm
+              sudo yum --nogpgcheck localinstall -y *.rpm
+            """
+          } catch (exc) {
+            println "No brew build packages found to install."
+          }
+        } else if (params.BUILD_NVR != '') {
+          try {
+            sh """
+              #!/bin/sh -e
+              RPMS=\$(brew buildinfo ${params.BUILD_NVR} | grep ${arch} | cut -d '/' -f10);
+              for p in \${RPMS}; do echo \${p}; brew download-build --rpm \${p} >/dev/null; done;
+              ls *.rpm;
+              sudo yum --nogpgcheck localinstall -y *.rpm;
+            """
+          } catch (exc) {
+            println "No brew build packages found for NVR ${params.BUILD_NVR}."
+          }
         }
-        else {
-          checkout scm
-        }
+      }
+      stage ("Start Cluster") {
+        sh """
+          sudo oc cluster up --image=docker-registry.engineering.redhat.com/multi-arch/ppc64le-openshift3-ose --version='for-test-3.9'
+        """
       }
 
-      def gopath = "${pwd(tmp: true)}/go"
       def failed_stages = []
-      withEnv(["GOPATH=${gopath}", "PATH=${PATH}:${gopath}/bin"]) {
-        stage('Prep') {
-          sh 'git config --global user.email "jpoulin@redhat.com" && git config --global user.name "Jeremy Poulin"'
-          git(url: params.ORIGIN_REPO, branch: params.ORIGIN_BRANCH)
-          sh '''
-          #!/bin/bash -xeu
-          git remote add detiber https://github.com/detiber/origin.git || true
-          git fetch detiber
-          git merge detiber/multiarch
-          '''
+      try {
+        stage ("End to End Tests") {
+          sh """
+            mkdir _out
+            sudo KUBECONFIG=/var/lib/origin/openshift.local.config/master/admin.kubeconfig TEST_REPORT_DIR=./_out /usr/libexec/atomic-openshift/extended.test --ginkgo.v=true --ginkgo.skip="Prometheus|Serial|Flaky|Disruptive|Slow|should be applied to XFS filesystem when a pod is created" --ginkgo.focus="EmptyDir"
+          """
         }
-        try {
-          stage('Pre-release Tests') {
-            sh '''
-            #!/bin/bash -xeu
-            hack/env JUNIT_REPORT=true DETECT_RACES=false TIMEOUT=300s make check -k
-            '''
-          }
-        } catch (exc) {
-          failed_stages+='Pre-release Tests'
-          currentBuild.result = 'UNSTABLE'
-        }
-        stage('Locally build release') {
-          try {
-            sh '''
-            #!/bin/bash -xeu
-            hack/env hack/build-base-images.sh
-            hack/env JUNIT_REPORT=true make release
-            '''
-          } catch (e) {
-            currentBuild.result = 'FAILURE'
-            throw e
-          }
-        }
-        try {
-          stage('Integration Tests') {
-            sh '''
-            #!/bin/bash -xeu
-            hack/env JUNIT_REPORT='true' make test-tools test-integration
-            '''
-          }
-        } catch (e) {
-          failed_stages+='Integration Tests'
-          currentBuild.result = 'UNSTABLE'
-        }
-        try {
-          stage('End to End tests') {
-            sh '''
-            #!/bin/bash -xeu
-            arch=$(go env GOHOSTARCH)
-            OS_BUILD_ENV_PRESERVE=_output/local/bin/linux/${arch}/end-to-end.test hack/env make build-router-e2e-test
-            OS_BUILD_ENV_PRESERVE=_output/local/bin/linux/${arch}/etcdhelper hack/env make build WHAT=tools/etcdhelper
-            OPENSHIFT_SKIP_BUILD='true' JUNIT_REPORT='true' make test-end-to-end -o build
-            '''
-          }
-        } catch (e) {
-          failed_stages+='End to End Tests'
-          currentBuild.result = 'UNSTABLE'
-        }
+      } catch (e) {
+        failed_stages+='End to End Tests'
+        currentBuild.result = 'UNSTABLE'
       }
     } catch (e) {
-      echo e
+      println(e)
     } finally {
       stage ('Archive Test Output') {
-        archiveArtifacts '_output/scripts/**/*'
-        junit '_output/scripts/**/*.xml'
+        archiveArtifacts '_out/*'
+        junit '_out/*.xml'
       }
     }
 
