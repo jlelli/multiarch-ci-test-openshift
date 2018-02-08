@@ -101,6 +101,7 @@ library(
 
 List arches = params.ARCHES.tokenize(',')
 def config = TestUtils.getProvisioningConfig(this)
+config.cloudName = 'kubernetes'
 
 TestUtils.runParallelMultiArchTest(
   this,
