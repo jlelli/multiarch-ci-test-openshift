@@ -121,7 +121,7 @@ ansiColor('xterm') {
             }
             stage ("Start Cluster") {
               sh """
-                sudo oc cluster up --image=docker-registry.engineering.redhat.com/multi-arch/ppc64le-openshift3-ose --version='for-test'
+                sudo oc cluster up --image=docker-registry.engineering.redhat.com/multi-arch/ppc64le-openshift3-ose --version='for-test-3.9'
               """
             }
 
