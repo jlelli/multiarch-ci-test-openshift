@@ -39,12 +39,12 @@ properties(
           name: 'JENKINSSLAVECREDENTIALID'
         ),
         string(
-          defaultValue: 'https://github.com/RedHat-MultiArch-QE/multiarch-ci-libraries',
+          defaultValue: 'https://github.com/jlelli/multiarch-ci-libraries',
           description: 'Repo for shared libraries.',
           name: 'LIBRARIES_REPO'
         ),
         string(
-          defaultValue: 'v0.2',
+          defaultValue: 'master',
           description: 'Git reference to the branch or tag of shared libraries.',
           name: 'LIBRARIES_REF'
         ),
