@@ -115,15 +115,15 @@ TestUtils.runParallelMultiArchTest(
       stage ("Install dependencies") {
         sh """
           sudo yum install -y yum-utils
-          sudo yum-config-manager --add-repo https://download.fedoraproject.org/pub/epel/7/${arch};
+          sudo yum-config-manager --add-repo https://download.fedoraproject.org/pub/epel/7/${host.arch};
           sudo yum-config-manager --add-repo http://download.devel.redhat.com/rel-eng/RCMTOOLS/rcm-tools-rhel-7-server.repo;
-          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/composes/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${arch}/os;
-          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/rel-eng/updates/RHEL-7.4/latest-RHEL-7/compose/Server/${arch}/os/;
-          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${arch}/os/;
-          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/rel-eng/updates/RHEL-7.4/latest-RHEL-7/compose/Server-optional/${arch}/os/;
-          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/rcm-guest/puddles/OpenStack/12.0-RHEL-7/latest/RH7-RHOS-12.0/${arch}/os/;
-          sudo rpm --import http://download.eng.bos.redhat.com/composes/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${arch}/os/RPM-GPG-KEY-redhat-beta;
-          sudo rpm --import http://download.eng.bos.redhat.com/composes/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${arch}/os/RPM-GPG-KEY-redhat-release;
+          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/composes/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${host.arch}/os;
+          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/rel-eng/updates/RHEL-7.4/latest-RHEL-7/compose/Server/${host.arch}/os/;
+          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${host.arch}/os/;
+          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/rel-eng/updates/RHEL-7.4/latest-RHEL-7/compose/Server-optional/${host.arch}/os/;
+          sudo yum-config-manager --add-repo http://download-node-02.eng.bos.redhat.com/rcm-guest/puddles/OpenStack/12.0-RHEL-7/latest/RH7-RHOS-12.0/${host.arch}/os/;
+          sudo rpm --import http://download.eng.bos.redhat.com/composes/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${host.arch}/os/RPM-GPG-KEY-redhat-beta;
+          sudo rpm --import http://download.eng.bos.redhat.com/composes/nightly/EXTRAS-RHEL-7.4/latest-EXTRAS-7-RHEL-7/compose/Server/${host.arch}/os/RPM-GPG-KEY-redhat-release;
           sudo rpm --import https://getfedora.org/static/352C64E5.txt;
           sudo yum install -y bc git make golang docker jq bind-utils koji brewkoji openvswitch;
           echo "[registries.search]" | sudo tee /etc/containers/registries.conf >/dev/null;
@@ -142,7 +142,7 @@ TestUtils.runParallelMultiArchTest(
           env | sort
         """
         if (env.CI_MESSAGE != '') {
-          getRPMFromCIMessage(env.CI_MESSAGE, arch)
+          getRPMFromCIMessage(env.CI_MESSAGE, host.arch)
           try {
             sh """
               ls *.rpm
@@ -155,7 +155,7 @@ TestUtils.runParallelMultiArchTest(
           try {
             sh """
               #!/bin/sh -e
-              RPMS=\$(brew buildinfo ${params.BUILD_NVR} | grep ${arch} | cut -d '/' -f10);
+              RPMS=\$(brew buildinfo ${params.BUILD_NVR} | grep ${host.arch} | cut -d '/' -f10);
               for p in \${RPMS}; do echo \${p}; brew download-build --rpm \${p} >/dev/null; done;
               ls *.rpm;
               sudo yum --nogpgcheck localinstall -y *.rpm;
