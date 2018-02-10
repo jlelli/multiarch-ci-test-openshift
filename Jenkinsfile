@@ -7,7 +7,7 @@ properties(
           checks: [],
           overrides: [topic: "Consumer.rh-jenkins-ci-plugin.cc2a6550-87f8-4030-8454-e221e27c48f7.VirtualTopic.qe.ci.>"],
           providerName: 'Red Hat UMB',
-          selector: 'name = \'atomic-openshift\' AND CI_TYPE = \'brew-tag\' AND tag LIKE \'rhaos-%-rhel-%-newarches-candidate\''
+          selector: 'name = \'atomic-openshift\' AND CI_TYPE = \'brew-tag\' AND tag LIKE \'rhaos-3.9-rhel-%-candidate\''
         ]
       ]
     ),
