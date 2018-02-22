@@ -141,12 +141,17 @@ TestUtils.runParallelMultiArchTest(
           sudo docker info
           env | sort
         """
-        if (env.CI_MESSAGE != '') {
-          getRPMFromCIMessage(env.CI_MESSAGE, host.arch)
+        if (params.CI_MESSAGE != '') {
+          tid = getTaskId(params.CI_MESSAGE)
+          createTaskRepo taskIds: tid
           try {
             sh """
-              ls *.rpm
-              sudo yum --nogpgcheck localinstall -y *.rpm
+              cat task-repo.properties
+              URL=\$(cat task-repo.properties | grep TASK_REPO_URLS= | sed 's/TASK_REPO_URLS=//' | sed 's/;/\\n/g' | grep ${host.arch})
+              sudo yum-config-manager --add-repo \${URL}
+              REPO=\$(sudo yum repolist | grep atomic-openshift | cut -f1 -d" ")
+              PKGS=\$(sudo yum --disablerepo="*" --enablerepo="\${REPO}" list available | grep atomic | cut -f1 -d" " | paste -sd " " -)
+              sudo yum --nogpgcheck install -y \$(echo \${PKGS})
             """
           } catch (exc) {
             println "No brew build packages found to install."
