@@ -87,6 +87,11 @@ properties(
           defaultValue: '',
           description: 'Build NVR for which to run the pipeline',
           name: 'BUILD_NVR'
+        ),
+        string(
+          defaultValue: '',
+          description: 'Build task ID for which to run the pipeline',
+          name: 'TASK_ID'
         )
       ]
     )
@@ -167,6 +172,20 @@ TestUtils.runParallelMultiArchTest(
             """
           } catch (exc) {
             println "No brew build packages found for NVR ${params.BUILD_NVR}."
+          }
+        } else if (params.TASK_ID != '') {
+          createTaskRepo taskIds: params.TASK_ID
+          try {
+            sh """
+              cat task-repo.properties
+              URL=\$(cat task-repo.properties | grep TASK_REPO_URLS= | sed 's/TASK_REPO_URLS=//' | sed 's/;/\\n/g' | grep ${host.arch})
+              sudo yum-config-manager --add-repo \${URL}
+              REPO=\$(sudo yum repolist | grep atomic-openshift | cut -f1 -d" ")
+              PKGS=\$(sudo yum --disablerepo="*" --enablerepo="\${REPO}" list available | grep atomic | cut -f1 -d" " | paste -sd " " -)
+              sudo yum --nogpgcheck install -y \$(echo \${PKGS})
+            """
+          } catch (exc) {
+            println "No brew build packages found for TASK_ID ${params.TASK_ID}."
           }
         }
       }
