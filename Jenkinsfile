@@ -163,12 +163,18 @@ TestUtils.runParallelMultiArchTest(
           }
         } else if (params.BUILD_NVR != '') {
           try {
+            tid = sh (
+              script: """brew buildinfo ${params.BUILD_NVR} | grep Task | cut -f2 -d' '""",
+              returnStdout: true
+            ).trim()
+            createTaskRepo taskIds: tid
             sh """
-              #!/bin/sh -e
-              RPMS=\$(brew buildinfo ${params.BUILD_NVR} | grep ${host.arch} | cut -d '/' -f10);
-              for p in \${RPMS}; do echo \${p}; brew download-build --rpm \${p} >/dev/null; done;
-              ls *.rpm;
-              sudo yum --nogpgcheck localinstall -y *.rpm;
+              cat task-repo.properties
+              URL=\$(cat task-repo.properties | grep TASK_REPO_URLS= | sed 's/TASK_REPO_URLS=//' | sed 's/;/\\n/g' | grep ${host.arch})
+              sudo yum-config-manager --add-repo \${URL}
+              REPO=\$(sudo yum repolist | grep atomic-openshift | cut -f1 -d" ")
+              PKGS=\$(sudo yum --disablerepo="*" --enablerepo="\${REPO}" list available | grep atomic | cut -f1 -d" " | paste -sd " " -)
+              sudo yum --nogpgcheck install -y \$(echo \${PKGS})
             """
           } catch (exc) {
             println "No brew build packages found for NVR ${params.BUILD_NVR}."
