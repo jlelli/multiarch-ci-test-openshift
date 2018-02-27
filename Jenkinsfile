@@ -149,18 +149,6 @@ TestUtils.runParallelMultiArchTest(
         if (params.CI_MESSAGE != '') {
           tid = getTaskId(params.CI_MESSAGE)
           createTaskRepo taskIds: tid
-          try {
-            sh """
-              cat task-repo.properties
-              URL=\$(cat task-repo.properties | grep TASK_REPO_URLS= | sed 's/TASK_REPO_URLS=//' | sed 's/;/\\n/g' | grep ${host.arch})
-              sudo yum-config-manager --add-repo \${URL}
-              REPO=\$(sudo yum repolist | grep atomic-openshift | cut -f1 -d" ")
-              PKGS=\$(sudo yum --disablerepo="*" --enablerepo="\${REPO}" list available | grep atomic | cut -f1 -d" " | paste -sd " " -)
-              sudo yum --nogpgcheck install -y \$(echo \${PKGS})
-            """
-          } catch (exc) {
-            println "No brew build packages found to install."
-          }
         } else if (params.BUILD_NVR != '') {
           try {
             tid = sh (
@@ -168,31 +156,23 @@ TestUtils.runParallelMultiArchTest(
               returnStdout: true
             ).trim()
             createTaskRepo taskIds: tid
-            sh """
-              cat task-repo.properties
-              URL=\$(cat task-repo.properties | grep TASK_REPO_URLS= | sed 's/TASK_REPO_URLS=//' | sed 's/;/\\n/g' | grep ${host.arch})
-              sudo yum-config-manager --add-repo \${URL}
-              REPO=\$(sudo yum repolist | grep atomic-openshift | cut -f1 -d" ")
-              PKGS=\$(sudo yum --disablerepo="*" --enablerepo="\${REPO}" list available | grep atomic | cut -f1 -d" " | paste -sd " " -)
-              sudo yum --nogpgcheck install -y \$(echo \${PKGS})
-            """
           } catch (exc) {
-            println "No brew build packages found for NVR ${params.BUILD_NVR}."
+            println "No brew build info found for NVR ${params.BUILD_NVR}."
           }
         } else if (params.TASK_ID != '') {
           createTaskRepo taskIds: params.TASK_ID
-          try {
-            sh """
-              cat task-repo.properties
-              URL=\$(cat task-repo.properties | grep TASK_REPO_URLS= | sed 's/TASK_REPO_URLS=//' | sed 's/;/\\n/g' | grep ${host.arch})
-              sudo yum-config-manager --add-repo \${URL}
-              REPO=\$(sudo yum repolist | grep atomic-openshift | cut -f1 -d" ")
-              PKGS=\$(sudo yum --disablerepo="*" --enablerepo="\${REPO}" list available | grep atomic | cut -f1 -d" " | paste -sd " " -)
-              sudo yum --nogpgcheck install -y \$(echo \${PKGS})
-            """
-          } catch (exc) {
-            println "No brew build packages found for TASK_ID ${params.TASK_ID}."
-          }
+        }
+        try {
+          sh """
+            cat task-repo.properties
+            URL=\$(cat task-repo.properties | grep TASK_REPO_URLS= | sed 's/TASK_REPO_URLS=//' | sed 's/;/\\n/g' | grep ${host.arch})
+            sudo yum-config-manager --add-repo \${URL}
+            REPO=\$(sudo yum repolist | grep atomic-openshift | cut -f1 -d" ")
+            PKGS=\$(sudo yum --disablerepo="*" --enablerepo="\${REPO}" list available | grep atomic | cut -f1 -d" " | paste -sd " " -)
+            sudo yum --nogpgcheck install -y \$(echo \${PKGS})
+          """
+        } catch (exc) {
+          println "Failed to download and install brew build packages."
         }
       }
       stage ("Start Cluster") {
