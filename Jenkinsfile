@@ -152,6 +152,7 @@ TestUtils.runParallelMultiArchTest(
           sudo docker info
           env | sort
         """
+        println "TEST=${params.TEST}"
         if (params.CI_MESSAGE != '') {
           tid = getTaskId(params.CI_MESSAGE)
           createTaskRepo taskIds: tid
