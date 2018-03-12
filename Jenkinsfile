@@ -92,7 +92,13 @@ properties(
           defaultValue: '',
           description: 'Build task ID for which to run the pipeline',
           name: 'TASK_ID'
-        )
+        ),
+        [$class: 'ValidatingStringParameterDefinition',
+         defaultValue: 'test',
+         description: 'A test validated string parameter. Valid values include [test].',
+         failedValidationMessage: 'Invalid string. Valid values are [test].',
+         name: 'TEST',
+         regex: 'test']
       ]
     )
   ]
