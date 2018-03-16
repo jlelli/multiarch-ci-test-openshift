@@ -122,6 +122,7 @@ TestUtils.runParallelMultiArchTest(
     /* TEST BODY                                             */
     /* @param host               Provisioned host details.   */
     /*********************************************************/
+    wrap([$class: 'AnsiColorBuildWrapper', colorMapName: 'xterm']) {
     try {
       stage ("Install dependencies") {
         sh """
@@ -207,6 +208,7 @@ TestUtils.runParallelMultiArchTest(
         archiveArtifacts '_out/*'
         junit '_out/*.xml'
       }
+    }
     }
 
     /*****************************************************************/
