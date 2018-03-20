@@ -122,8 +122,8 @@ TestUtils.runParallelMultiArchTest(
     /* TEST BODY                                             */
     /* @param host               Provisioned host details.   */
     /*********************************************************/
-    wrap([$class: 'AnsiColorBuildWrapper', colorMapName: 'xterm']) {
     try {
+    wrap([$class: 'AnsiColorBuildWrapper', colorMapName: 'xterm']) {
       stage ("Install dependencies") {
         sh """
           sudo yum install -y yum-utils
@@ -201,14 +201,15 @@ TestUtils.runParallelMultiArchTest(
         failed_stages+='End to End Tests'
         currentBuild.result = 'UNSTABLE'
       }
+    }
     } catch (e) {
       println(e)
+      currentBuild.result = 'FAIL'
     } finally {
       stage ('Archive Test Output') {
         archiveArtifacts '_out/*'
         junit '_out/*.xml'
       }
-    }
     }
 
     /*****************************************************************/
