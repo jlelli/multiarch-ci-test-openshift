@@ -104,11 +104,19 @@ properties(
   ]
 )
 
-library(
-  changelog: false,
-  identifier: "multiarch-ci-libraries@${params.LIBRARIES_REF}",
-  retriever: modernSCM([$class: 'GitSCMSource',remote: "${params.LIBRARIES_REPO}"])
-)
+try {
+  library(
+    changelog: false,
+    identifier: "multiarch-ci-libraries@${params.LIBRARIES_REF}",
+    retriever: modernSCM([$class: 'GitSCMSource',remote: "${params.LIBRARIES_REPO}"])
+  )
+} catch (e) {
+      println "here"
+      println(e)
+      currentBuild.result = 'FAIL'
+
+      return
+}
 
 List arches = params.ARCHES.tokenize(',')
 def config = TestUtils.getProvisioningConfig(this)
@@ -203,7 +211,8 @@ TestUtils.runParallelMultiArchTest(
       }
     }
     } catch (e) {
-      println(e)
+      println "here"
+      //println(e)
       currentBuild.result = 'FAIL'
     } finally {
       stage ('Archive Test Output') {
