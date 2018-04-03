@@ -193,7 +193,7 @@ TestUtils.runParallelMultiArchTest(
       }
       stage ("Start Cluster") {
         sh """
-          sudo oc cluster up --image=docker-registry.engineering.redhat.com/multi-arch/${host.arch}-openshift3-ose --version='for-test'
+          sudo oc cluster up --image=docker-registry.engineering.redhat.com/multi-arch/${host.arch}-openshift3-ose --version='for-test-v3.9.16-4'
         """
       }
 
