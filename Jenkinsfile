@@ -94,11 +94,11 @@ properties(
           name: 'TASK_ID'
         ),
         [$class: 'ValidatingStringParameterDefinition',
-         defaultValue: 'test',
-         description: 'A test validated string parameter. Valid values include [test].',
-         failedValidationMessage: 'Invalid string. Valid values are [test].',
-         name: 'TEST',
-         regex: 'test']
+         defaultValue: 'ppc64le',
+         description: 'A test validated string parameter. Valid values include [x86_64, ppc64le, aarch64, s390x].',
+         failedValidationMessage: 'Invalid string. Valid values are [x86_64, ppc64le, aarch64, s390x].',
+         name: 'TEST_ARCHES',
+         regex: '^(?:x86_64|ppc64le|aarch64|s390x)(?:, (?:x86_64|ppc64le|aarch64|s390x))*$']
       ]
     )
   ]
