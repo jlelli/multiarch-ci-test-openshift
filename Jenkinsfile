@@ -19,12 +19,12 @@ properties(
           name: 'ARCHES'
         ),
         string(
-          defaultValue: 'https://github.com/jlelli/multiarch-ci-libraries',
+          defaultValue: 'https://github.com/redhat-multiarch-qe/multiarch-ci-libraries',
           description: 'Repo for shared libraries.',
           name: 'LIBRARIES_REPO'
         ),
         string(
-          defaultValue: 'master',
+          defaultValue: 'dev-v0.3',
           description: 'Git reference to the branch or tag of shared libraries.',
           name: 'LIBRARIES_REF'
         ),
