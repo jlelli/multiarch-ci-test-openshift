@@ -14,29 +14,9 @@ properties(
     parameters(
       [
         string(
-          defaultValue: 'ppc64le',
+          defaultValue: 'x86_64,ppc64le',
           description: 'A comma separated list of architectures to run the test on. Valid values include [x86_64, ppc64le, aarch64, s390x].',
           name: 'ARCHES'
-        ),
-        string(
-          defaultValue: 'SSHPRIVKEY',
-          description: 'SSH private key Jenkins credential ID for Beaker/SSH operations.',
-          name: 'SSHPRIVKEYCREDENTIALID'
-        ),
-        string(
-          defaultValue: 'SSHPUBKEY',
-          description: 'SSH public key Jenkins credential ID for Beaker/SSH operations.',
-          name: 'SSHPUBKEYCREDENTIALID'
-        ),
-        string(
-          defaultValue: 'KEYTAB',
-          description: 'Kerberos keytab file Jenkins credential ID for Beaker/SSH operations.',
-          name: 'KEYTABID'
-        ),
-        string(
-          defaultValue: 'JENKINS_SLAVE_CREDENTIALS',
-          description: 'Jenkins slave credential ID for connecting slaves using cinch via JSwarm.',
-          name: 'JENKINSSLAVECREDENTIALID'
         ),
         string(
           defaultValue: 'https://github.com/jlelli/multiarch-ci-libraries',
