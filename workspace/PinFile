@@ -4,12 +4,15 @@ jenkins-slave:
   {% if hooks %}
   hooks:
     {% if hooks.postUp %}
-    post-up:
+    postup:
       {% if hooks.postUp.connectToMaster %}
-      name: cinch
-        type: shell
+      - type: ansible
+        name: cinch
+        path: /usr/lib/python2.7/site-packages/cinch/
+        context: True
         actions:
-        - cinch inventories/jenkins-slave.inventory
+          - playbook: site.yml
+            extra_vars: {{ extra_vars }} 
       {% endif %}  
     {% endif %}
   {% endif %}
