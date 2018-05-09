@@ -183,6 +183,19 @@ TestUtils.runParallelMultiArchTest(
             } catch (exc) {
               println "No brew build packages found for NVR ${params.BUILD_NVR}."
             }
+          } else if (params.TASK_ID != '') {
+            try {
+              sh """
+                #!/bin/sh -e
+                NVR=\$(brew taskinfo ${params.TASK_ID} | grep "Build:" | cut -d" " -f2);
+                RPMS=\$(brew buildinfo \${NVR} | grep ${host.arch} | cut -d '/' -f10);
+                for p in \${RPMS}; do echo \${p}; brew download-build --rpm \${p} >/dev/null; done;
+                ls *.rpm;
+                sudo yum --nogpgcheck localinstall -y *.rpm;
+              """
+            } catch (exc) {
+              println "No brew build packages found for TASK_ID ${params.TASK_ID}."
+            }
           }
         }
       }
