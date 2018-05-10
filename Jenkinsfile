@@ -200,9 +200,13 @@ TestUtils.runParallelMultiArchTest(
         }
       }
       stage ("Start Cluster") {
-        sh """
-          sudo oc cluster up --image=docker-registry.engineering.redhat.com/multi-arch/ppc64le-openshift3-ose --version='for-test-3.9'
-        """
+        withCredentials([file(credentialsId: 'redhat-multiarch-qe-registrycrt', variable: 'REGISTRY_CRT')]) {
+          sh """
+            sudo mkdir -p /etc/docker/certs.d/kernelci-06.khw.lab.eng.bos.redhat.com
+            sudo cp ${REGISTRY_CRT} /etc/docker/certs.d/kernelci-06.khw.lab.eng.bos.redhat.com/
+            sudo oc cluster up --image=kernelci-06.khw.lab.eng.bos.redhat.com/multi-arch/ppc64le-openshift3-ose-control-plane:v3.10
+          """
+        }
       }
 
       def failed_stages = []
