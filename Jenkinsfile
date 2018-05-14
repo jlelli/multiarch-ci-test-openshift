@@ -204,7 +204,7 @@ TestUtils.runParallelMultiArchTest(
           sh """
             sudo mkdir -p /etc/docker/certs.d/kernelci-06.khw.lab.eng.bos.redhat.com
             sudo cp ${REGISTRY_CRT} /etc/docker/certs.d/kernelci-06.khw.lab.eng.bos.redhat.com/
-            sudo oc cluster up --image=kernelci-06.khw.lab.eng.bos.redhat.com/multi-arch/ppc64le-openshift3-ose-control-plane:v3.10
+            sudo oc cluster up --image='kernelci-06.khw.lab.eng.bos.redhat.com/multi-arch/ppc64le-openshift3-ose-\${component}:\${version}' --enable=-web-console
           """
         }
       }
@@ -214,8 +214,9 @@ TestUtils.runParallelMultiArchTest(
         stage ("End to End Tests") {
           sh """
             mkdir _out
-            sudo KUBECONFIG=/var/lib/origin/openshift.local.config/master/admin.kubeconfig TEST_REPORT_DIR=./_out /usr/libexec/atomic-openshift/extended.test --ginkgo.v=true --ginkgo.skip="Prometheus|Serial|Flaky|Disruptive|Slow|should be applied to XFS filesystem when a pod is created" --ginkgo.focus="EmptyDir"
+            sudo KUBECONFIG=/var/lib/jenkins/workspace/multiarch-qe/multiarch-ci-test-openshift/openshift.local.clusterup/kube-apiserver/admin.kubeconfig TEST_REPORT_DIR=./_out /usr/libexec/atomic-openshift/extended.test --ginkgo.v=true --ginkgo.focus="k8s" --ginkgo.skip="Spark|Cassandra|Redis|Downward API|Storm|RethinkDB|Hazelcast|should support subPath|Secret"
           """
+            //sudo KUBECONFIG=/var/lib/origin/openshift.local.config/master/admin.kubeconfig TEST_REPORT_DIR=./_out /usr/libexec/atomic-openshift/extended.test --ginkgo.v=true --ginkgo.skip="Prometheus|Serial|Flaky|Disruptive|Slow|should be applied to XFS filesystem when a pod is created" --ginkgo.focus="EmptyDir"
         }
       } catch (e) {
         failed_stages+='End to End Tests'
