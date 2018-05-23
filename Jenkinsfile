@@ -215,7 +215,6 @@ TestUtils.runParallelMultiArchTest(
             mkdir _out
             sudo KUBECONFIG=/var/lib/jenkins/workspace/multiarch-qe/multiarch-ci-test-openshift/openshift.local.clusterup/kube-apiserver/admin.kubeconfig TEST_REPORT_DIR=./_out /usr/libexec/atomic-openshift/extended.test --ginkgo.v=true --ginkgo.focus="k8s" --ginkgo.skip="Spark|Cassandra|Redis|Downward API|Storm|RethinkDB|Hazelcast|should support subPath|Secret"
           """
-            //sudo KUBECONFIG=/var/lib/origin/openshift.local.config/master/admin.kubeconfig TEST_REPORT_DIR=./_out /usr/libexec/atomic-openshift/extended.test --ginkgo.v=true --ginkgo.skip="Prometheus|Serial|Flaky|Disruptive|Slow|should be applied to XFS filesystem when a pod is created" --ginkgo.focus="EmptyDir"
         }
       } catch (e) {
         failed_stages+='End to End Tests'
