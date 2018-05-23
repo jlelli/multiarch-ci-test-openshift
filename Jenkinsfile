@@ -159,8 +159,8 @@ TestUtils.runParallelMultiArchTest(
             println "Failed to download and install brew build packages."
           }
         } else {
-          if (env.CI_MESSAGE != '') {
-            getRPMFromCIMessage(env.CI_MESSAGE, host.arch)
+          if (params.CI_MESSAGE != '') {
+            getRPMFromCIMessage(params.CI_MESSAGE, host.arch)
             try {
               sh """
                 ls *.rpm
