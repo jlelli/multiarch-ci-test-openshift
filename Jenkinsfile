@@ -5,7 +5,7 @@ properties(
         [
           $class: 'CIBuildTrigger',
           checks: [],
-          overrides: [topic: "Consumer.rh-jenkins-ci-plugin.cc2a6550-87f8-4030-8454-e221e27.58f7.VirtualTopic.qe.ci.>"],
+          overrides: [topic: "Consumer.rh-jenkins-ci-plugin.6046262a-ae76-40a2-a577-efc648745bbc.VirtualTopic.qe.ci.>"],
           providerName: 'Red Hat UMB',
           selector: 'name = \'atomic-openshift\' AND CI_TYPE = \'brew-tag\' AND tag LIKE \'rhaos-%-rhel-%-candidate\''
         ]
