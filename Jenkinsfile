@@ -203,7 +203,7 @@ TestUtils.runParallelMultiArchTest(
           sh """
             sudo mkdir -p /etc/docker/certs.d/kernelci-06.khw.lab.eng.bos.redhat.com
             sudo cp ${REGISTRY_CRT} /etc/docker/certs.d/kernelci-06.khw.lab.eng.bos.redhat.com/
-            sudo oc cluster up --image='kernelci-06.khw.lab.eng.bos.redhat.com/multi-arch/ppc64le-openshift3-ose-\${component}:\${version}' --enable=-web-console
+            sudo oc cluster up --image='kernelci-06.khw.lab.eng.bos.redhat.com/multi-arch/ppc64le-openshift3-ose-\${component}:\${version}'
             sudo oc version
           """
         }
